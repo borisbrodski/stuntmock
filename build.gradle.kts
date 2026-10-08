@@ -22,7 +22,7 @@ repositories {
 }
 
 val byteBuddyVersion = "1.17.5"
-val objenesisVersion = "3.4"
+val objenesisVersion = "3.6"
 val junitVersion = "5.11.4"
 
 dependencies {

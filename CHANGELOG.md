@@ -5,6 +5,12 @@ versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Fixed
+
+- `FrozenClock` left a stale "frozen class" behind when a `static` nested test class ran before its enclosing
+  class (Gradle's order); the enclosing class then started with an unfrozen clock. The frozen clock is now tied
+  to the Stunt class scope instead of the lexical nesting of test classes.
+
 ## [0.1.0] – 2026-10-07
 
 First public release.

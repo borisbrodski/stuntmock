@@ -39,7 +39,8 @@ dependencies {
 tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
     options.release.set(17)          // runs on Java 17 and newer
-    options.compilerArgs.addAll(listOf("-Xlint:all", "-Xlint:-processing", "-parameters"))
+    // -classfile: ByteBuddy's classes carry @SuppressFBWarnings, whose annotation type is an optional dependency
+    options.compilerArgs.addAll(listOf("-Xlint:all", "-Xlint:-processing", "-Xlint:-classfile", "-parameters"))
 }
 
 tasks.withType<Javadoc>().configureEach {
@@ -67,7 +68,7 @@ tasks.test {
     }
     // Guard against silently losing tests (a refactoring that drops a block): the suite must not shrink.
     // Raise the number when tests are added; lower it only in a commit that deliberately removes tests.
-    val expectedMinTests = 285
+    val expectedMinTests = 286
     var executed = 0L
     afterTest(KotlinClosure2({ _: TestDescriptor, _: TestResult -> executed++ }))
     doLast {

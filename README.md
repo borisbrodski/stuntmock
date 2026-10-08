@@ -94,27 +94,26 @@ at all.
 
 ## Stunt, JMockit and Mockito
 
-An honest comparison; each of the three is the right tool for a different code base.
+Each of the three is the right tool for a different code base.
 
 | | Mockito | JMockit | Stunt |
-|---|---|---|---|
-| Model | mock *objects* you hand to the code under test | mocked *types*, expectations recorded up front | mocked *types*, mappings declared up front |
-| Mechanism | subclass proxies; inline mock maker retransforms for finals/statics | retransformation through a Java agent | retransformation through a self-attached ByteBuddy agent |
-| Static methods | `mockStatic`, scoped with try-with-resources | yes | yes, part of a class declaration |
-| Private methods | no | yes | yes, by name |
-| Objects the SUT creates with `new` | `mockConstruction`, replaces the object | yes | yes, the real object is intercepted; constructors run |
-| Final classes and methods | with the inline mock maker | yes | yes |
-| JDK classes (`java.time`) | partly (inline mock maker, some exclusions) | partly | yes, through a bootstrap dispatcher; `java.lang` core excluded |
-| Interfaces | natural (a proxy) | natural | by resolver to the implementation, or an explicit `proxy` |
-| Verification | after the act, `verify(mock).m()` | before (expectations) or after (`Verifications`) | before the act only |
-| Strict mode | strict stubs (unused stubs fail); `verifyNoMoreInteractions` | strict `Expectations` | `@Verify` / `@Audit` per class or object |
-| Ordering assertions | `InOrder` | `VerificationsInOrder` | none |
-| Unused-stub detection | yes | no | no |
-| Failure diagnostics | good | good | messages carry declaration and call sites plus a full state dump |
-| Needs an agent at runtime | only the inline mock maker | yes | yes (self-attached, like Mockito's inline maker) |
-| Java versions | 8+ | lags behind new JDKs | 17+ |
-| Ecosystem, community, docs | very large | small, maintenance slowed | new, small |
-| Best for | code designed for injection; the industry default | legacy code bases that need type-level mocking | legacy code bases that need type-level mocking on current JDKs, with explicit declarations and strong diagnostics |
+|---|:---:|:---:|:---:|
+| Static methods | ✅ | ✅ | ✅ |
+| Private methods | ❌ | ✅ | ✅ |
+| Objects the code under test creates with `new` | ✅ replaced | ✅ | ✅ intercepted |
+| Final classes and methods | ✅ inline mock maker | ✅ | ✅ |
+| JDK classes (`java.time`) | partially | partially | ✅ |
+| Interfaces | ✅ | ✅ | ✅ resolver or proxy |
+| Mappings and expectations declared before the act | ❌ | ✅ | ✅ |
+| Verification after the act | ✅ | ✅ | ❌ |
+| Strict mocks | ✅ | ✅ | ✅ |
+| Ordering assertions | ✅ | ✅ | ❌ |
+| Unused-stub detection | ✅ | ❌ | ❌ |
+| Failures name the declaration and call sites, with a state dump | ❌ | ❌ | ✅ |
+| Frozen clock built in | ❌ | ❌ | ✅ |
+| Runs without an agent | ✅ except inline | ❌ | ❌ |
+| Current JDKs | ✅ 8+ | ❌ lags | ✅ 17+ |
+| Mature, large community | ✅ | ❌ | ❌ new |
 
 If your code takes its collaborators through constructors and you want the most widely known tool, use
 Mockito. If you have a JMockit code base that must run on a current JDK, or production code with statics,

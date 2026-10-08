@@ -11,8 +11,11 @@ java {
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(21))
     }
-    withSourcesJar()
-    withJavadocJar()
+    // sources and javadoc jars come from the maven-publish plugin (a second pair here would write the same files)
+}
+
+tasks.assemble {
+    dependsOn(tasks.withType<Jar>()) // build/libs holds the sources and javadoc jars too, and `build` checks the javadoc
 }
 
 repositories {

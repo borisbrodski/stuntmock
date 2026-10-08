@@ -12,6 +12,9 @@ versions follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- `publishToMavenLocal` failed on Gradle 9 because the java plugin and the maven-publish plugin each built a
+  javadoc jar into the same file; only the maven-publish plugin's jars remain.
+
 - The javadoc task no longer needs network access: the Java 17 API package index is checked in and linked
   offline, so the build works behind a corporate firewall.
 

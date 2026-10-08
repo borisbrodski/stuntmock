@@ -1,8 +1,6 @@
-import com.vanniktech.maven.publish.SonatypeHost
-
 plugins {
     `java-library`
-    id("com.vanniktech.maven.publish") version "0.30.0"
+    id("com.vanniktech.maven.publish") version "0.37.0"
 }
 
 group = "org.eu.de.stuntmock"
@@ -21,9 +19,9 @@ repositories {
     mavenCentral()
 }
 
-val byteBuddyVersion = "1.17.5"
-val objenesisVersion = "3.4"
-val junitVersion = "5.11.4"
+val byteBuddyVersion = "1.18.14"
+val objenesisVersion = "3.6"
+val junitVersion = "6.1.3"
 
 dependencies {
     api("net.bytebuddy:byte-buddy:$byteBuddyVersion")
@@ -70,7 +68,14 @@ tasks.test {
     // Raise the number when tests are added; lower it only in a commit that deliberately removes tests.
     val expectedMinTests = 286
     var executed = 0L
-    afterTest(KotlinClosure2({ _: TestDescriptor, _: TestResult -> executed++ }))
+    addTestListener(object : TestListener {
+        override fun beforeSuite(suite: TestDescriptor) = Unit
+        override fun afterSuite(suite: TestDescriptor, result: TestResult) = Unit
+        override fun beforeTest(testDescriptor: TestDescriptor) = Unit
+        override fun afterTest(testDescriptor: TestDescriptor, result: TestResult) {
+            executed++
+        }
+    })
     doLast {
         if (executed < expectedMinTests) {
             throw GradleException("Test suite shrank: $executed tests executed, expected at least $expectedMinTests")
@@ -89,7 +94,7 @@ tasks.jar {
 }
 
 mavenPublishing {
-    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
+    publishToMavenCentral(automaticRelease = true)
     signAllPublications()
     coordinates("org.eu.de.stuntmock", "stunt", version.toString())
 

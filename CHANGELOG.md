@@ -5,6 +5,11 @@ versions follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Build: Gradle 9.8.0, ByteBuddy 1.18.14, Objenesis 3.6, JUnit 6.1.3 for the test suite, maven-publish plugin
+  0.37.0 (Central Portal only); the GitHub Actions of the workflows on their current majors.
+
 ### Fixed
 
 - `FrozenClock` left a stale "frozen class" behind when a `static` nested test class ran before its enclosing

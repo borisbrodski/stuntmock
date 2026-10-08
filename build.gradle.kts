@@ -15,7 +15,7 @@ java {
 }
 
 tasks.assemble {
-    dependsOn(tasks.withType<Jar>()) // build/libs holds the sources and javadoc jars too, and `build` checks the javadoc
+    dependsOn(tasks.withType<org.gradle.jvm.tasks.Jar>()) // build/libs holds the sources and javadoc jars too, and `build` checks the javadoc
 }
 
 repositories {

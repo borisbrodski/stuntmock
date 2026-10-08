@@ -44,7 +44,9 @@ tasks.withType<JavaCompile>().configureEach {
 tasks.withType<Javadoc>().configureEach {
     (options as StandardJavadocDocletOptions).apply {
         addStringOption("Xdoclint:all,-missing", "-quiet")
-        links("https://docs.oracle.com/en/java/javase/17/docs/api/")
+        // JDK types link to the Java 17 API docs; the package index is checked in (gradle/javadoc/jdk17/element-list,
+        // generated from the JDK's java.* modules) so that the build never needs network access
+        linksOffline("https://docs.oracle.com/en/java/javase/17/docs/api/", layout.projectDirectory.dir("gradle/javadoc/jdk17").asFile.path)
     }
 }
 

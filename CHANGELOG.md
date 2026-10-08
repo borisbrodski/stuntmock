@@ -12,6 +12,9 @@ versions follow [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- The javadoc task no longer needs network access: the Java 17 API package index is checked in and linked
+  offline, so the build works behind a corporate firewall.
+
 - `FrozenClock` left a stale "frozen class" behind when a `static` nested test class ran before its enclosing
   class (Gradle's order); the enclosing class then started with an unfrozen clock. The frozen clock is now tied
   to the Stunt class scope instead of the lexical nesting of test classes.

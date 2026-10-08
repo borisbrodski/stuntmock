@@ -28,7 +28,9 @@ jobs:
             21
       - uses: gradle/actions/setup-gradle@v4
       - name: Build and test
-        # the toolchain compiles with 21 (release 17); the test JVM is the matrix JDK
+        # the toolchain compiles with 21 (release 17); the test JVM is the matrix JDK.
+        # bash on every runner: PowerShell splits -Porg.gradle.java... at the dot and Gradle sees a task name
+        shell: bash
         run: ./gradlew build -PtestJdk=${{ matrix.java }} -Porg.gradle.java.installations.fromEnv=JAVA_HOME_17_X64,JAVA_HOME_21_X64 --no-daemon
       - name: Upload test report
         if: always()

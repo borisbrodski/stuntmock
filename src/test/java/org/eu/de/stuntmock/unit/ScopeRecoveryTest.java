@@ -10,6 +10,7 @@ import org.junit.platform.launcher.listeners.TestExecutionSummary;
 import org.eu.de.stuntmock.unit.fixtures.BrokenDeclarationFixture;
 import org.eu.de.stuntmock.unit.fixtures.HealthyFixture;
 import org.eu.de.stuntmock.unit.fixtures.NestedFixture;
+import org.eu.de.stuntmock.unit.fixtures.StaticNestedClockFixture;
 
 /**
  * Scopes never leak from one test class into the next: a class whose {@code beforeAll} fails leaves nothing
@@ -30,6 +31,17 @@ class ScopeRecoveryTest {
     @Test
     void nestedClassesNestTheirScopes() {
         assertNull(Launch.firstFailure(NestedFixture.class), String.valueOf(Launch.firstFailure(NestedFixture.class)));
+    }
+
+    /**
+     * A {@code static} nested class is a top-level class to JUnit; Gradle runs it before its enclosing class.
+     * Its frozen clock must not be mistaken for the enclosing class's when that one starts afterwards.
+     */
+    @Test
+    void aStaticNestedClassRunFirstLeavesNoFrozenClockBehind() {
+        TestExecutionSummary summary = Launch.summaryOf(StaticNestedClockFixture.Standalone.class, StaticNestedClockFixture.class);
+        assertEquals(0, summary.getTotalFailureCount(), describe(summary));
+        assertEquals(2, summary.getTestsSucceededCount(), describe(summary));
     }
 
     private static String describe(TestExecutionSummary summary) {

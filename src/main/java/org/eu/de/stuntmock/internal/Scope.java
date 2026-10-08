@@ -146,6 +146,11 @@ public final class Scope {
         return classScope;
     }
 
+    /** The scope this one was opened inside: the enclosing class's for a {@code @Nested} class, the class scope for a test scope, else {@code null}. */
+    public Scope parent() {
+        return parent;
+    }
+
     // ---------------------------------------------------------------- resolvers
 
     /** Registers a resolver; it applies to every declaration made afterwards. */

@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayDeque;
 import java.util.Optional;
 
 import org.junit.jupiter.api.extension.AfterAllCallback;
@@ -49,11 +50,27 @@ public final class FrozenClock implements BeforeAllCallback, BeforeEachCallback,
 
     private static final ThreadLocal< ZonedDateTime > NOW = new ThreadLocal<>();
     private static final ThreadLocal< ZonedDateTime > BASE = new ThreadLocal<>();
-    /** The test class whose clock is frozen on this thread, so that the global setting and an explicit registration do not freeze twice. */
-    private static final ThreadLocal< Class< ? > > FROZEN_CLASS = new ThreadLocal<>();
-    /** The enclosing classes' moments while a {@code @Nested} class runs: [now, base] pairs, innermost last. */
-    private static final ThreadLocal< java.util.ArrayDeque< ZonedDateTime[] > > ENCLOSING =
-        ThreadLocal.withInitial(java.util.ArrayDeque::new);
+    /**
+     * One frame per class whose clock is frozen on this thread, innermost last: a {@code @Nested} class freezes
+     * inside its enclosing class's frame. A frame is tied to the Stunt class scope it was frozen in, not to the
+     * lexical nesting of test classes: a {@code static} nested class is a top-level class to JUnit and may run
+     * before, after or without its enclosing class.
+     */
+    private static final ThreadLocal< ArrayDeque< Frame > > FROZEN = ThreadLocal.withInitial(ArrayDeque::new);
+
+    /** The class scope a class froze the clock in, and the moments to restore when the class ends. */
+    private static final class Frame {
+
+        final Scope scope;
+        final ZonedDateTime outerNow;
+        final ZonedDateTime outerBase;
+
+        Frame(Scope scope, ZonedDateTime outerNow, ZonedDateTime outerBase) {
+            this.scope = scope;
+            this.outerNow = outerNow;
+            this.outerBase = outerBase;
+        }
+    }
 
     // ---------------------------------------------------------------- test API
 
@@ -93,32 +110,34 @@ public final class FrozenClock implements BeforeAllCallback, BeforeEachCallback,
     @Override
     public void beforeAll(ExtensionContext context) {
         Class< ? > testClass = context.getRequiredTestClass();
-        if (testClass.isAnnotationPresent(RealClock.class) || FROZEN_CLASS.get() == testClass) {
-            return; // opted out, or already frozen for this class (StuntSettings.freezeClock plus an explicit registration)
+        if (testClass.isAnnotationPresent(RealClock.class)) {
+            return;
         }
-        if (Scope.classScope() == null) {
+        Scope classScope = Scope.classScope();
+        if (classScope == null) {
             throw new StuntException("FrozenClock needs the Stunt class scope: register StuntExtension before it,"
                 + " e.g. @ExtendWith({StuntExtension.class, FrozenClock.class})");
         }
-        if (BASE.get() != null) {
-            ENCLOSING.get().push(new ZonedDateTime[] {NOW.get(), BASE.get()}); // a @Nested class: keep the enclosing clock
+        ArrayDeque< Frame > frozen = FROZEN.get();
+        while (!frozen.isEmpty() && !isOpen(frozen.peek().scope, classScope)) {
+            restore(frozen.pop()); // frozen by a class whose afterAll never ran; its scope is already gone
+        }
+        if (!frozen.isEmpty() && frozen.peek().scope == classScope) {
+            return; // already frozen for this class: StuntSettings.freezeClock plus an explicit registration
         }
         ZonedDateTime base = realNowInMillis();
         PretendRunningAt classPretend = testClass.getAnnotation(PretendRunningAt.class);
         if (classPretend != null) {
             base = applyPretend(base, classPretend);
         }
+        frozen.push(new Frame(classScope, NOW.get(), BASE.get())); // a @Nested class: the enclosing clock, restored at its end
         BASE.set(base);
         NOW.set(base);
-        Class< ? > enclosingClass = FROZEN_CLASS.get();
-        FROZEN_CLASS.set(testClass);
         try {
             freeze();
         }
         catch (RuntimeException | Error e) {
-            NOW.remove();
-            BASE.remove();
-            FROZEN_CLASS.set(enclosingClass);
+            restore(frozen.pop());
             throw e;
         }
     }
@@ -136,19 +155,33 @@ public final class FrozenClock implements BeforeAllCallback, BeforeEachCallback,
 
     @Override
     public void afterAll(ExtensionContext context) {
-        if (FROZEN_CLASS.get() != context.getRequiredTestClass()) {
+        ArrayDeque< Frame > frozen = FROZEN.get();
+        if (frozen.isEmpty() || frozen.peek().scope != Scope.classScope()) {
             return; // not frozen for this class (opted out), or already restored by the other registration
         }
-        FROZEN_CLASS.set(context.getRequiredTestClass().getEnclosingClass());
-        java.util.ArrayDeque< ZonedDateTime[] > enclosing = ENCLOSING.get();
-        if (!enclosing.isEmpty() && BASE.get() != null) {
-            ZonedDateTime[] outer = enclosing.pop();     // back to the enclosing class's clock
-            NOW.set(outer[0]);
-            BASE.set(outer[1]);
-            return;
+        restore(frozen.pop());
+    }
+
+    /** Whether {@code scope} is {@code current} or one of the class scopes it is nested in. */
+    private static boolean isOpen(Scope scope, Scope current) {
+        for (Scope s = current; s != null; s = s.parent()) {
+            if (s == scope) {
+                return true;
+            }
         }
-        NOW.remove();
-        BASE.remove();
+        return false;
+    }
+
+    /** Back to the clock of the class enclosing the one the frame belongs to, or to no clock for a top-level class. */
+    private static void restore(Frame frame) {
+        if (frame.outerBase == null) {
+            NOW.remove();
+            BASE.remove();
+        }
+        else {
+            NOW.set(frame.outerNow);
+            BASE.set(frame.outerBase);
+        }
     }
 
     // ---------------------------------------------------------------- mapping

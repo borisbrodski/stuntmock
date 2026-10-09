@@ -1,7 +1,7 @@
 # Stunt
 
 [![CI](https://github.com/borisbrodski/stuntmock/actions/workflows/ci.yml/badge.svg)](https://github.com/borisbrodski/stuntmock/actions/workflows/ci.yml)
-[![Maven Central](https://img.shields.io/maven-central/v/org.eu.de.stuntmock/stunt.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/org.eu.de.stuntmock/stunt)
+[![Maven Central](https://img.shields.io/maven-central/v/org.eu.stuntmock/stunt.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/org.eu.stuntmock/stunt)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 
 **A mocking framework for JUnit 5 that changes classes in place.**
@@ -36,12 +36,12 @@ class InvoiceServiceTest implements WithStunt {
 ## Getting started
 
 ```kotlin
-testImplementation("org.eu.de.stuntmock:stunt:0.1.0")        // Gradle
+testImplementation("org.eu.stuntmock:stunt:0.1.0")        // Gradle
 ```
 
 ```xml
 <dependency>                                            <!-- Maven -->
-    <groupId>org.eu.de.stuntmock</groupId>
+    <groupId>org.eu.stuntmock</groupId>
     <artifactId>stunt</artifactId>
     <version>0.1.0</version>
     <scope>test</scope>
@@ -54,7 +54,7 @@ its agent itself, the same way Mockito does.
 
 Register the extension with `@ExtendWith(StuntExtension.class)` (or set
 `junit.jupiter.extensions.autodetection.enabled=true` in `junit-platform.properties`: Stunt ships the service
-file, and JUnit then applies it to every test class). Then either `import static org.eu.de.stuntmock.Stunt.*`
+file, and JUnit then applies it to every test class). Then either `import static org.eu.stuntmock.Stunt.*`
 or let the test class `implements WithStunt`, which brings the whole API in as default methods with no import
 at all.
 
@@ -124,7 +124,7 @@ Mockito. If you have a JMockit code base that must run on a current JDK, or prod
 - [Reference](docs/reference.md) – every concept, form and rule, with the error messages Stunt raises
 - [Migrating from JMockit](docs/migrating-from-jmockit.md) – a mechanical mapping table
 - [Migrating from Mockito](docs/migrating-from-mockito.md) – the same for Mockito
-- The Javadoc of [`WithStunt`](src/main/java/org/eu/de/stuntmock/WithStunt.java) is written as a tutorial
+- The Javadoc of [`WithStunt`](src/main/java/org/eu/stuntmock/WithStunt.java) is written as a tutorial
 - [Changelog](CHANGELOG.md)
 
 ## How it works, in one paragraph

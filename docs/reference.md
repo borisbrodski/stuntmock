@@ -61,7 +61,7 @@ per test). Both are bound to the test thread.
 
 ## Two ways to call the API, and `StuntSettings`
 
-`import static org.eu.de.stuntmock.Stunt.*;` brings in every verb, `arg`, `mtd`, `any()` and
+`import static org.eu.stuntmock.Stunt.*;` brings in every verb, `arg`, `mtd`, `any()` and
 `eq()`. Alternatively a test class `implements WithStunt`, which carries the same API as default methods
 and the namespaces as constants, so that no import at all is needed; its Javadoc is written as a tutorial.
 Register it once with `StuntSettings.ignoreCallSites(WithStunt.class)` so that messages point at test
@@ -103,7 +103,7 @@ abstract class UnitTest implements WithStunt {
 
 A static initializer of a shared base class is early enough because Java initialises the test class, and with
 it its base classes, before JUnit does anything with it. Without a base class, implement `StuntInitializer`
-and list it in `META-INF/services/org.eu.de.stuntmock.StuntInitializer`: Stunt loads it at the same
+and list it in `META-INF/services/org.eu.stuntmock.StuntInitializer`: Stunt loads it at the same
 moment, whatever the class-loading order. (JUnit's own `org.junit.jupiter.api.extension.Extension` service file
 only works with `junit.jupiter.extensions.autodetection.enabled=true`, which is why registering a custom
 extension that way appears to do nothing.)
@@ -383,7 +383,7 @@ intercepted too. Stunt checks the answer: the class must be concrete, the instan
 must be a subtype of the declared type. An exception inside a resolver fails the test, naming the resolver, the
 type and the method, with the exception as cause; nothing is swallowed. Register resolvers once per JVM with
 `StuntSettings.addTypeResolver(...)` before the first test class opens (a static initializer or guarded init
-routine), or list the class in `META-INF/services/org.eu.de.stuntmock.TypeResolver`.
+routine), or list the class in `META-INF/services/org.eu.stuntmock.TypeResolver`.
 
 An interface no resolver knows is **not** declared silently: `@Stub SomeInterface x` fails with a message that
 names the ways out, including the ordering trap (a static field is bound before any `@BeforeAll` runs, so a
@@ -428,7 +428,7 @@ whose clock is not frozen answers the real time instead of failing.
 
 ## Frozen clock
 
-`org.eu.de.stuntmock.time.FrozenClock` freezes `java.time` for a test class; it is built entirely on the public
+`org.eu.stuntmock.time.FrozenClock` freezes `java.time` for a test class; it is built entirely on the public
 API. **Off by default.** Two ways to turn it on:
 
 - for every test class at once, from an initialization block: `StuntSettings.freezeClock(true)`; the extension
@@ -479,7 +479,7 @@ and any test may still add its own `when` on them. `FrozenClockTest` is the spec
   the reflective call that invoked the test. If your tests reach Stunt through a delegating interface or base
   class (default methods forwarding to `Stunt.*` to save imports), register it once next to the type resolvers
   with `StuntSettings.ignoreCallSites(WithStunt.class)` so that the site is the test line, not the delegator.
-- The logger `org.eu.de.stuntmock` (`System.Logger`, so any logging backend can bind it) traces
+- The logger `org.eu.stuntmock` (`System.Logger`, so any logging backend can bind it) traces
   each dispatch decision at `DEBUG`: which chain and step answered a call, or why none matched.
 
 ## Errors Stunt raises
@@ -498,7 +498,7 @@ and any test may still add its own `when` on them. `FrozenClockTest` is the spec
    `-XX:+EnableDynamicAgentLoading` to the test JVM, which silences the warning and is the flag the JDK will
    require in the future. A `-javaagent:byte-buddy-agent.jar` argument works as well and is picked up
    automatically.
-2. **Bootstrap dispatcher.** Three tiny classes (`org.eu.de.stuntmock.dispatch`) are injected into
+2. **Bootstrap dispatcher.** Three tiny classes (`org.eu.stuntmock.dispatch`) are injected into
    the bootstrap class loader at installation. Advice inlined into a class calls only these, which is what makes
    instrumenting `java.time.LocalDate` possible. Nothing in application code may reference that package
    directly.

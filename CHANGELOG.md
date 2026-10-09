@@ -7,6 +7,8 @@ versions follow [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Group and packages are `org.eu.stuntmock` (artifact `org.eu.stuntmock:stunt`), for the domain stuntmock.eu.org.
+
 - Build: Gradle 9.8.0, ByteBuddy 1.18.14, Objenesis 3.6, JUnit 6.1.3 for the test suite, maven-publish plugin
   0.37.0 (Central Portal only); the GitHub Actions of the workflows on their current majors.
 

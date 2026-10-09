@@ -8,8 +8,8 @@ lists what needs a human.
 ## Setup
 
 ```java
-import static org.eu.de.stuntmock.Stunt.*;           // or: class MyTest implements WithStunt
-import org.eu.de.stuntmock.*;
+import static org.eu.stuntmock.Stunt.*;           // or: class MyTest implements WithStunt
+import org.eu.stuntmock.*;
 
 @ExtendWith(StuntExtension.class)
 class MyTest { ... }

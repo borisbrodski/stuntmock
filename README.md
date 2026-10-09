@@ -6,6 +6,8 @@
 
 **A mocking framework for JUnit 5 that changes classes in place.**
 
+Home: [stuntmock.eu.org](https://stuntmock.eu.org) · Source: [github.com/borisbrodski/stuntmock](https://github.com/borisbrodski/stuntmock) · Maven: `org.eu.stuntmock:stunt`
+
 Most mocking frameworks hand you a mock object and leave it to you to get it into the code under test.
 Stunt instruments the class instead. Whatever the production code does to obtain an object – `new`, a static
 call, a locator, a factory – the calls on it can be stubbed and verified, because the class itself carries the

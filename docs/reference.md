@@ -1,5 +1,7 @@
 # Stunt reference
 
+Project home: [stuntmock.eu.org](https://stuntmock.eu.org) · Maven: `org.eu.stuntmock:stunt`
+
 Stunt is a mocking framework for JUnit 5 that changes classes in place instead of handing mock objects to the
 code under test. Whatever the production code does to obtain an object – `new`, a static call, a locator, a
 DAO factory – the calls on it can be stubbed and verified, because the class itself carries the interception.

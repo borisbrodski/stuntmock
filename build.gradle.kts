@@ -22,7 +22,7 @@ repositories {
     mavenCentral()
 }
 
-val byteBuddyVersion = "1.18.14"
+val byteBuddyVersion = "1.18.16"
 val objenesisVersion = "3.6"
 val junitVersion = "6.1.3"
 

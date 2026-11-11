@@ -1,0 +1,133 @@
+---
+import '../styles/global.css';
+interface Props { title: string; description?: string; }
+const {
+  title,
+  description = 'Stunt — a mocking framework for JUnit 5 that changes classes in place. Stub and verify statics, private methods, final classes, objects created with new, and JDK classes, without redesigning production code.',
+} = Astro.props;
+const GH = 'https://github.com/borisbrodski/stuntmock';
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta name="theme-color" content="#100e10" />
+    <script is:inline>
+      // Theme: saved user choice wins, otherwise the browser preference. Runs before paint.
+      (() => {
+        let saved = null;
+        try { saved = localStorage.getItem('theme'); } catch (e) {}
+        const url = new URLSearchParams(location.search).get('theme');
+        const preferred = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        document.documentElement.dataset.theme = url ?? saved ?? preferred;
+      })();
+    </script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container nav">
+        <a class="logo" href="/">
+          <img src="/favicon.svg" alt="" width="26" height="26" />
+          <span class="logo-name"><span class="brand-text">Stunt</span></span>
+        </a>
+        <nav class="links">
+          <a href="/#quickstart">Getting started</a>
+          <a href="/docs/reference/">Reference</a>
+          <a href="/docs/migrating-from-jmockit/">From JMockit</a>
+          <a href="/docs/migrating-from-mockito/">From Mockito</a>
+          <a href="/javadoc/">JavaDoc</a>
+        </nav>
+        <div class="actions">
+          <button class="theme-toggle" aria-label="Toggle color theme" data-theme-toggle>
+            <svg class="moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+            <svg class="sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+          </button>
+          <a class="gh" href={GH} aria-label="GitHub">
+            <svg width="20" height="20" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          </a>
+          <a class="btn btn-primary btn-sm" href="/#quickstart">Get started</a>
+        </div>
+      </div>
+    </header>
+
+    <slot />
+
+    <footer class="site-footer">
+      <div class="container foot">
+        <div class="foot-brand">
+          <img src="/favicon.svg" alt="" width="24" height="24" />
+          <div>
+            <div class="logo-name"><span class="brand-text">Stunt</span></div>
+            <p>A mocking framework for JUnit 5 · Apache 2.0 · an <a href="https://openbrod.org">OpenBrod</a> project</p>
+          </div>
+        </div>
+        <div class="foot-cols">
+          <div>
+            <h4>Project</h4>
+            <a href={GH}>GitHub</a>
+            <a href="https://central.sonatype.com/artifact/org.eu.stuntmock/stunt">Maven Central</a>
+            <a href={`${GH}/issues`}>Issue tracker</a>
+            <a href="/changelog/">Changelog</a>
+          </div>
+          <div>
+            <h4>Documentation</h4>
+            <a href="/#quickstart">Getting started</a>
+            <a href="/docs/reference/">Reference</a>
+            <a href="/javadoc/">JavaDoc</a>
+          </div>
+          <div>
+            <h4>Migrating</h4>
+            <a href="/docs/migrating-from-jmockit/">From JMockit</a>
+            <a href="/docs/migrating-from-mockito/">From Mockito</a>
+          </div>
+        </div>
+      </div>
+      <div class="container foot-note">
+        © 2026 Boris Brodski · Built with Claude (Anthropic) · Apache License 2.0
+      </div>
+    </footer>
+
+    <style>
+      .site-header {
+        position: sticky; top: 0; z-index: 50;
+        background: var(--header-bg); backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--border);
+      }
+      .nav { display: flex; align-items: center; gap: 28px; height: 62px; }
+      .logo { display: flex; align-items: center; gap: 10px; }
+      .logo-name { font-weight: 800; font-size: 1.15rem; letter-spacing: -.01em; }
+      .links { display: flex; gap: 22px; margin-left: auto; }
+      .links a { color: var(--text-2); font-size: .92rem; font-weight: 500; }
+      .links a:hover { color: var(--text); }
+      .actions { display: flex; align-items: center; gap: 14px; }
+      .gh { color: var(--text-2); display: inline-flex; }
+      .gh:hover { color: var(--text); }
+      .btn-sm { padding: 7px 15px; font-size: .87rem; }
+      @media (max-width: 900px) { .links { display: none; } .actions { margin-left: auto; } }
+
+      .site-footer { border-top: 1px solid var(--border); background: var(--bg-2); margin-top: 40px; }
+      .foot { display: flex; gap: 60px; padding: 44px 24px 28px; flex-wrap: wrap; }
+      .foot-brand { display: flex; gap: 12px; align-items: flex-start; max-width: 320px; }
+      .foot-brand p { font-size: .82rem; margin: 4px 0 0; color: var(--text-3); }
+      .foot-cols { display: flex; gap: 60px; flex-wrap: wrap; margin-left: auto; }
+      .foot-cols h4 { font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--text-3); margin: 0 0 10px; }
+      .foot-cols a { display: block; color: var(--text-2); font-size: .9rem; padding: 3px 0; }
+      .foot-cols a:hover { color: var(--text); }
+      .foot-note { padding: 16px 24px 26px; font-size: .8rem; color: var(--text-3); border-top: 1px solid var(--border); }
+    </style>
+    <script>
+      document.querySelector('[data-theme-toggle]')?.addEventListener('click', () => {
+        const el = document.documentElement;
+        const next = el.dataset.theme === 'light' ? 'dark' : 'light';
+        el.dataset.theme = next;
+        try { localStorage.setItem('theme', next); } catch (e) {}
+      });
+    </script>
+  </body>
+</html>

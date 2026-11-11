@@ -106,7 +106,7 @@ mavenPublishing {
     pom {
         name.set("Stunt")
         description.set("A mocking framework for JUnit 5 that changes classes in place: statics, privates, fresh instances, JDK classes.")
-        url.set("https://stuntmock.eu.org")
+        url.set("https://stuntmock.openbrod.org")
         inceptionYear.set("2026")
         licenses {
             license {

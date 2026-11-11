@@ -14,8 +14,8 @@ captor), so most lines translate one to one. Two things are different in kind an
 ## Setup
 
 ```java
-import static org.eu.stuntmock.Stunt.*;           // or: class MyTest implements WithStunt
-import org.eu.stuntmock.*;
+import static org.openbrod.stuntmock.Stunt.*;           // or: class MyTest implements WithStunt
+import org.openbrod.stuntmock.*;
 
 @ExtendWith(StuntExtension.class)                    // replaces MockitoExtension
 class MyTest { ... }

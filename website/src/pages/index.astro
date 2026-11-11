@@ -4,7 +4,7 @@ import { Code } from 'astro:components';
 
 const themes = { light: 'github-light', dark: 'one-dark-pro' } as const;
 const V = '0.1.0';
-const G = 'org.eu.stuntmock';
+const G = 'org.openbrod.stuntmock';
 
 const heroExample = `@ExtendWith(StuntExtension.class)
 @StubPartially(PriceRules.class)   // real code, stubbable
@@ -257,7 +257,7 @@ const GH = 'https://github.com/borisbrodski/stuntmock';
           <Code code={registerExample} lang="java" themes={themes} />
         </div>
       </div>
-      <p class="after-code">Then <code>import static org.eu.stuntmock.Stunt.*</code> — or let the test class
+      <p class="after-code">Then <code>import static org.openbrod.stuntmock.Stunt.*</code> — or let the test class
         <code>implements WithStunt</code>, whose Javadoc is written as a tutorial.
         <a href="/docs/reference/">Read the reference →</a></p>
     </div>

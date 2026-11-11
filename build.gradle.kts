@@ -3,7 +3,7 @@ plugins {
     id("com.vanniktech.maven.publish") version "0.37.0"
 }
 
-group = "org.eu.stuntmock"
+group = "org.openbrod.stuntmock"
 version = providers.gradleProperty("version").orElse("0.1.0-SNAPSHOT").get()
 description = "Stunt - a mocking framework for JUnit 5 that changes classes in place"
 
@@ -61,7 +61,7 @@ tasks.test {
         languageVersion.set(JavaLanguageVersion.of(testJdk.get()))
     })
     // fixture classes under ...unit.fixtures are run by tests through the launcher, not by the suite
-    filter { excludeTestsMatching("org.eu.stuntmock.unit.fixtures.*") }
+    filter { excludeTestsMatching("org.openbrod.stuntmock.unit.fixtures.*") }
     // Stunt attaches its agent dynamically; this flag silences the JDK 21+ warning and keeps dynamic
     // attach working should a future JDK disable it by default (JEP 451).
     jvmArgs("-XX:+EnableDynamicAgentLoading")
@@ -93,7 +93,7 @@ tasks.jar {
         attributes(
             "Implementation-Title" to "Stunt",
             "Implementation-Version" to project.version,
-            "Automatic-Module-Name" to "org.eu.stuntmock"
+            "Automatic-Module-Name" to "org.openbrod.stuntmock"
         )
     }
 }
@@ -101,12 +101,12 @@ tasks.jar {
 mavenPublishing {
     publishToMavenCentral(automaticRelease = true)
     signAllPublications()
-    coordinates("org.eu.stuntmock", "stunt", version.toString())
+    coordinates("org.openbrod.stuntmock", "stunt", version.toString())
 
     pom {
         name.set("Stunt")
         description.set("A mocking framework for JUnit 5 that changes classes in place: statics, privates, fresh instances, JDK classes.")
-        url.set("https://stuntmock.eu.org")
+        url.set("https://stuntmock.openbrod.org")
         inceptionYear.set("2026")
         licenses {
             license {

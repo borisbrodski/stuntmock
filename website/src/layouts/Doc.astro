@@ -1,0 +1,64 @@
+---
+import Base from './Base.astro';
+import type { MarkdownHeading } from 'astro';
+
+interface Props { title: string; headings: MarkdownHeading[]; sourcePath: string; }
+const { title, headings, sourcePath } = Astro.props;
+const toc = headings.filter((h) => h.depth === 2);
+const pages = [
+  { href: '/docs/reference/', label: 'Reference' },
+  { href: '/docs/migrating-from-jmockit/', label: 'Migrating from JMockit' },
+  { href: '/docs/migrating-from-mockito/', label: 'Migrating from Mockito' },
+  { href: '/javadoc/', label: 'JavaDoc' },
+  { href: '/changelog/', label: 'Changelog' },
+];
+const here = Astro.url.pathname;
+---
+<Base title={`${title} — Stunt`}>
+  <div class="container doc-wrap">
+    <aside class="doc-side">
+      <nav class="doc-pages">
+        {pages.map((p) => <a href={p.href} class={here === p.href ? 'on' : ''}>{p.label}</a>)}
+      </nav>
+      {toc.length > 0 && (
+        <nav class="doc-toc">
+          <h4>On this page</h4>
+          {toc.map((h) => <a href={`#${h.slug}`}>{h.text}</a>)}
+        </nav>
+      )}
+    </aside>
+    <article class="prose">
+      <slot />
+      <p class="edit"><a href={`https://github.com/borisbrodski/stuntmock/blob/main/${sourcePath}`}>Edit this page on GitHub</a></p>
+    </article>
+  </div>
+
+  <style is:global>
+    .doc-wrap { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 48px; padding-top: 40px; padding-bottom: 40px; }
+    @media (max-width: 900px) { .doc-wrap { grid-template-columns: 1fr; } .doc-side { position: static !important; max-height: none !important; } .doc-toc { display: none; } }
+    .doc-side { position: sticky; top: 84px; align-self: start; max-height: calc(100vh - 100px); overflow-y: auto; font-size: .9rem; scrollbar-width: thin; }
+    .doc-pages { display: flex; flex-direction: column; gap: 2px; margin-bottom: 26px; }
+    .doc-pages a { color: var(--text-2); padding: 6px 10px; border-radius: 7px; }
+    .doc-pages a:hover { color: var(--text); background: var(--surface); }
+    .doc-pages a.on { color: var(--text); background: var(--surface); box-shadow: inset 2px 0 0 var(--coral); }
+    .doc-toc h4 { font-size: .75rem; text-transform: uppercase; letter-spacing: .08em; color: var(--text-3); margin: 0 0 8px 10px; }
+    .doc-toc a { display: block; color: var(--text-3); padding: 4px 10px; line-height: 1.35; }
+    .doc-toc a:hover { color: var(--text); }
+
+    .prose { min-width: 0; max-width: 860px; }
+    .prose h1 { font-size: clamp(1.9rem, 4vw, 2.6rem); margin-bottom: .6em; }
+    .prose h2 { margin-top: 2.2em; padding-top: .4em; border-top: 1px solid var(--border); }
+    .prose h3 { margin-top: 1.8em; font-size: 1.15rem; }
+    .prose p, .prose li { color: var(--text-2); }
+    .prose li { margin: .25em 0; }
+    .prose strong { color: var(--text); }
+    .prose pre {
+      background: var(--code-bg) !important; border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 16px 18px; overflow-x: auto; font-size: .84rem; line-height: 1.55;
+    }
+    .prose table { display: block; overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); margin: 1.2em 0; }
+    .prose table code { white-space: nowrap; }
+    .prose blockquote { margin: 1.2em 0; padding: 4px 16px; border-left: 3px solid var(--coral); background: var(--surface); border-radius: 0 8px 8px 0; }
+    .prose .edit { margin-top: 3em; font-size: .88rem; }
+  </style>
+</Base>

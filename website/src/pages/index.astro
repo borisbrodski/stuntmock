@@ -1,0 +1,395 @@
+---
+import Base from '../layouts/Base.astro';
+import { Code } from 'astro:components';
+
+const themes = { light: 'github-light', dark: 'one-dark-pro' } as const;
+const V = '0.1.0';
+const G = 'org.openbrod.stuntmock';
+
+const heroExample = `@ExtendWith(StuntExtension.class)
+@StubPartially(PriceRules.class)   // real code, stubbable
+class InvoiceServiceTest implements WithStunt {
+
+    @Stub CustomerDao dao;         // every instance
+
+    @Test
+    void createsAnInvoice() {
+        when(() -> dao.findById(42L)).thenReturn(customer);
+        when(() -> PriceRules.rateFor("DE")).thenReturn(0.19);
+        verify(Invoice.class, i -> i.persist()); // exactly once
+
+        // no mock is passed in:
+        new InvoiceService().createInvoice(42L);
+    }
+}`;
+
+const gradleKts = `dependencies {
+    testImplementation("${G}:stunt:${V}")
+}
+
+tasks.test {
+    useJUnitPlatform()
+    jvmArgs("-XX:+EnableDynamicAgentLoading") // JDK 21+
+}`;
+const gradleGroovy = `dependencies {
+    testImplementation '${G}:stunt:${V}'
+}
+
+test {
+    useJUnitPlatform()
+    jvmArgs '-XX:+EnableDynamicAgentLoading'  // JDK 21+
+}`;
+const mavenDep = `<dependency>
+    <groupId>${G}</groupId>
+    <artifactId>stunt</artifactId>
+    <version>${V}</version>
+    <scope>test</scope>
+</dependency>`;
+
+const registerExample = `// Option 1: per test class
+@ExtendWith(StuntExtension.class)
+class OrderTest implements WithStunt { ... }
+
+// Option 2: for every test class, in
+// src/test/resources/junit-platform.properties
+junit.jupiter.extensions.autodetection.enabled=true`;
+
+const chainExample = `verify(() -> dao.findById(1L))
+    .thenReturn("a").times(2)
+    .thenThrow(new NotFound())
+    .thenReturn("b");
+
+when(account, mtd.getters()).anyTimes();
+when(Invoice.class, "roundTotal", arg.anyInt())
+    .thenReturn(BigDecimal.TEN);`;
+
+const failureExample = `Expected 2 calls to setText(any String), got 1
+    at de.acme.OrderTest.createsOrder(OrderTest.java:42)
+
+…followed by Stunt.dump():
+  - every declaration, with the line that made it
+  - every chain with its progress, e.g. thenReturn("a") [1/2]
+  - the calls made so far, with the chain that answered each`;
+
+const GH = 'https://github.com/borisbrodski/stuntmock';
+---
+<Base title="Stunt — a mocking framework for JUnit 5 that changes classes in place">
+
+  <!-- ============================================== HERO -->
+  <section class="hero">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <div class="badges">
+          <span class="badge"><span class="dot"></span> v{V} · JUnit 5</span>
+          <span class="badge">Apache 2.0</span>
+          <span class="badge warm">Java 17+</span>
+        </div>
+        <h1>Mock the code<br /><span class="brand-text">you can't inject into.</span></h1>
+        <p class="hero-sub">
+          Stunt instruments the <b>class</b>, not an object. Whatever the production code does to get
+          one — <code>new</code>, a static call, a locator, a factory — its calls can be stubbed and
+          verified. Statics, private methods, final classes and JDK types like
+          <code>java.time.LocalDate</code> included, with <b>no redesign for testability</b>.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="#quickstart">Get started</a>
+          <a class="btn btn-ghost" href={GH}>View on GitHub</a>
+        </div>
+        <div class="hero-facts">
+          <div><b>4</b><span>verbs, one model</span></div>
+          <div><b>300+</b><span>JUnit tests</span></div>
+          <div><b>0</b><span>changes to production code</span></div>
+        </div>
+      </div>
+      <div class="codebox hero-code">
+        <div class="codebox-head"><span>InvoiceServiceTest.java</span>
+          <button class="copy-btn" data-copy>Copy</button></div>
+        <Code code={heroExample} lang="java" themes={themes} />
+      </div>
+    </div>
+  </section>
+
+  <hr class="sep" />
+
+  <!-- ============================================== WHY -->
+  <section class="section" id="why">
+    <div class="container">
+      <div class="kicker">Why Stunt</div>
+      <h2>A stunt double for the risky scenes only</h2>
+      <p class="lead">A stunt double stands in for the real actor where it's dangerous; everything else
+        stays real. Stunt does the same for your classes: only what you declare is touched.</p>
+      <div class="grid3">
+        <div class="card"><h3><span class="ico">🏗️</span>No redesign for testability</h3>
+          <p>Legacy code with <code>new</code>, statics and service locators is testable as it is. Nothing
+          has to be injected, so nothing has to be rewritten first.</p></div>
+        <div class="card"><h3><span class="ico">🎯</span>Explicit, not magic</h3>
+          <p>Only declared classes are instrumented. <code>@Verify</code> is never silent, and interfaces
+          without a resolver are an error, not a surprise.</p></div>
+        <div class="card"><h3><span class="ico">🧾</span>Readable failures</h3>
+          <p>Every message names the line that declared the mapping and the line that made the call,
+          followed by a dump of everything Stunt knows about the test.</p></div>
+        <div class="card"><h3><span class="ico">🔒</span>Private, static, final, JDK</h3>
+          <p>Stub private methods by name, statics and final classes alike, even
+          <code>java.time</code> types, through a tiny bootstrap dispatcher.</p></div>
+        <div class="card"><h3><span class="ico">⚙️</span>Project setup once</h3>
+          <p>Type resolvers (interface → implementation by convention), defaults and conventions live
+          in <code>StuntSettings</code> / a <code>StuntInitializer</code>, registered once per JVM.</p></div>
+        <div class="card"><h3><span class="ico">⏱️</span>A frozen clock</h3>
+          <p>A frozen clock for <code>java.time</code>, built entirely on the public API. Off by default;
+          one setting turns it on for every test class.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="sep" />
+
+  <!-- ============================================== MODEL -->
+  <section class="section" id="model">
+    <div class="container">
+      <div class="kicker">The model</div>
+      <h2>Four verbs. Four annotations. One per cell.</h2>
+      <p class="lead">A class is <b>declared</b> with a policy — what an unmapped call gets — and is
+        optionally made <b>strict</b>, so a call nothing maps fails the test. Each works on a whole class
+        (every instance, statics included) or on a single object.</p>
+      <div class="model-grid">
+        <div class="table-wrap model-table">
+          <table>
+            <thead><tr><th></th><th>lenient</th><th>strict</th></tr></thead>
+            <tbody>
+              <tr><th class="rowh">default value</th><td><code>stub</code> · <code>@Stub</code></td><td><code>verify</code> · <code>@Verify</code></td></tr>
+              <tr><th class="rowh">real code</th><td><code>stubPartially</code> · <code>@StubPartially</code></td><td><code>audit</code> · <code>@Audit</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <ol class="model-steps">
+          <li><b>Declare.</b> <code>@Stub CustomerDao dao</code> makes <em>every</em> <code>CustomerDao</code> a mock; the field is just a handle.</li>
+          <li><b>Map before the act.</b> <code>when(…)</code> maps a call to an answer; <code>verify(…)</code> does the same and asserts the count.</li>
+          <li><b>Match.</b> Arguments with <code>arg</code> (<code>arg.any()</code>, <code>arg.startsWith("x")</code>, captors), method groups with <code>mtd</code>.</li>
+          <li><b>Read the dump.</b> <code>Stunt.dump()</code> ends every failure, each line linking back to the test code that declared it.</li>
+        </ol>
+      </div>
+      <div class="grid2 model-code">
+        <div class="codebox">
+          <div class="codebox-head"><span>Chains, groups, private methods</span></div>
+          <Code code={chainExample} lang="java" themes={themes} />
+        </div>
+        <div class="codebox">
+          <div class="codebox-head"><span>Anatomy of a failure (abridged)</span></div>
+          <Code code={failureExample} lang="text" themes={themes} />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="sep" />
+
+  <!-- ============================================== COMPARE -->
+  <section class="section" id="compare">
+    <div class="container">
+      <div class="kicker">Stunt, JMockit and Mockito</div>
+      <h2>Each is the right tool for a different code base</h2>
+      <p class="lead">If your code takes its collaborators through constructors and you want the most widely
+        known tool, use Mockito. If you have a JMockit code base that must run on a current JDK, or production
+        code with statics, <code>new</code> and private calls you can't redesign, Stunt is built for exactly that.</p>
+      <div class="table-wrap">
+        <table class="cmp">
+          <thead><tr><th>Capability</th><th>Mockito</th><th>JMockit</th><th>Stunt</th></tr></thead>
+          <tbody>
+            <tr><td>Static methods</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
+            <tr><td>Private methods</td><td class="n">—</td><td class="y">✓</td><td class="y">✓</td></tr>
+            <tr><td>Objects the code under test creates with <code>new</code></td><td class="y">✓ replaced</td><td class="y">✓</td><td class="y">✓ intercepted</td></tr>
+            <tr><td>Final classes and methods</td><td class="y">✓ inline mock maker</td><td class="y">✓</td><td class="y">✓</td></tr>
+            <tr><td>JDK classes (<code>java.time</code>)</td><td>partially</td><td>partially</td><td class="y">✓</td></tr>
+            <tr><td>Interfaces</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓ resolver or proxy</td></tr>
+            <tr><td>Mappings and expectations declared before the act</td><td class="n">—</td><td class="y">✓</td><td class="y">✓</td></tr>
+            <tr><td>Verification after the act</td><td class="y">✓</td><td class="y">✓</td><td class="n">—</td></tr>
+            <tr><td>Strict mocks</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
+            <tr><td>Ordering assertions</td><td class="y">✓</td><td class="y">✓</td><td class="n">—</td></tr>
+            <tr><td>Unused-stub detection</td><td class="y">✓</td><td class="n">—</td><td class="n">—</td></tr>
+            <tr><td>Failures name declaration and call sites, with a state dump</td><td class="n">—</td><td class="n">—</td><td class="y">✓</td></tr>
+            <tr><td>Frozen clock built in</td><td class="n">—</td><td class="n">—</td><td class="y">✓</td></tr>
+            <tr><td>Runs without an agent</td><td class="y">✓ except inline</td><td class="n">—</td><td class="n">—</td></tr>
+            <tr><td>Current JDKs</td><td class="y">✓ 8+</td><td class="n">lags</td><td class="y">✓ 17+</td></tr>
+            <tr><td>Mature, large community</td><td class="y">✓</td><td class="n">—</td><td class="n">new</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="migrate">
+        <a class="card mig" href="/docs/migrating-from-jmockit/">
+          <h3><span class="ico">↪</span>Migrating from JMockit</h3>
+          <p>A mechanical mapping table: most JMockit tests translate line by line.</p>
+        </a>
+        <a class="card mig" href="/docs/migrating-from-mockito/">
+          <h3><span class="ico">↪</span>Migrating from Mockito</h3>
+          <p>The vocabulary is deliberately close — <code>when</code>, <code>verify</code>, <code>thenReturn</code>, <code>any</code>.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <hr class="sep" />
+
+  <!-- ============================================== QUICK START -->
+  <section class="section" id="quickstart">
+    <div class="container">
+      <div class="kicker">Quick start</div>
+      <h2>One dependency. One extension.</h2>
+      <p class="lead">Requires Java 17+ and JUnit 5. Stunt attaches its agent itself, the same way Mockito
+        does; on JDK 21+ add <code>-XX:+EnableDynamicAgentLoading</code> to the test JVM to silence the warning.</p>
+      <div class="grid2">
+        <div class="codebox" data-deptabs>
+          <div class="codebox-head deps-head">
+            <span class="dep-tabs" role="tablist">
+              <button class="dep-tab active" data-tab="gradle-kts" role="tab">Gradle (Kotlin)</button>
+              <button class="dep-tab" data-tab="gradle" role="tab">Gradle (Groovy)</button>
+              <button class="dep-tab" data-tab="maven" role="tab">Maven</button>
+            </span>
+            <button class="copy-btn" data-copy>Copy</button>
+          </div>
+          <div class="dep-panel active" data-panel="gradle-kts"><Code code={gradleKts} lang="kotlin" themes={themes} /></div>
+          <div class="dep-panel" data-panel="gradle"><Code code={gradleGroovy} lang="groovy" themes={themes} /></div>
+          <div class="dep-panel" data-panel="maven"><Code code={mavenDep} lang="xml" themes={themes} /></div>
+        </div>
+        <div class="codebox">
+          <div class="codebox-head"><span>Register the extension</span>
+            <button class="copy-btn" data-copy>Copy</button></div>
+          <Code code={registerExample} lang="java" themes={themes} />
+        </div>
+      </div>
+      <p class="after-code">Then <code>import static org.openbrod.stuntmock.Stunt.*</code> — or let the test class
+        <code>implements WithStunt</code>, whose Javadoc is written as a tutorial.
+        <a href="/docs/reference/">Read the reference →</a></p>
+    </div>
+  </section>
+
+  <hr class="sep" />
+
+  <!-- ============================================== HOW IT WORKS -->
+  <section class="section" id="how">
+    <div class="container">
+      <div class="kicker">How it works</div>
+      <h2>Advice inlined into the method body</h2>
+      <div class="how-grid">
+        <div class="how-step"><b>1 · Retransform</b><span>A self-attached ByteBuddy agent retransforms each declared class and inlines an advice at the top of every method body.</span></div>
+        <div class="how-step"><b>2 · Nothing added</b><span>No fields or methods are added: loaded classes and existing objects keep working, and line numbers survive for the debugger.</span></div>
+        <div class="how-step"><b>3 · JDK classes too</b><span>A tiny dispatcher injected into the bootstrap class loader makes the same mechanism work for <code>java.*</code> types.</span></div>
+        <div class="how-step"><b>4 · Capture, don't run</b><span>A <code>when</code>/<code>verify</code> closure's lambda bytecode is inspected, then run in capture mode: the call is recorded, never executed.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="sep" />
+
+  <!-- ============================================== CREDITS -->
+  <section class="section-tight" id="credits">
+    <div class="container">
+      <div class="credit card">
+        <div>
+          <div class="kicker" style="margin-bottom:4px">Built differently</div>
+          <h3 style="font-size:1.2rem; margin:0 0 6px">Designed by a human, implemented by AI</h3>
+          <p style="margin:0">The design dialogue, the code, the tests and the documentation were produced by
+            Claude (Anthropic), working from the requirements, reviews and decisions of its architect,
+            <a href="https://github.com/borisbrodski">Boris Brodski</a>. Contributions are welcome.</p>
+        </div>
+        <div class="credit-cta">
+          <a class="btn btn-primary" href={GH}>Star on GitHub</a>
+          <a class="btn btn-ghost" href="/changelog/">Changelog</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    .hero { position: relative; overflow: hidden; }
+    :root[data-theme='light'] .hero-glow { display: none; }
+    .hero-glow {
+      position: absolute; inset: 0; pointer-events: none;
+      background:
+        radial-gradient(600px 340px at 80% 30%, rgba(255,90,78,.13), transparent 65%),
+        radial-gradient(500px 300px at 88% 80%, rgba(212,57,143,.10), transparent 60%),
+        radial-gradient(700px 400px at 12% 8%, rgba(255,176,32,.07), transparent 60%);
+    }
+    .hero-grid {
+      position: relative; display: grid; grid-template-columns: 1fr 1fr;
+      gap: 40px; align-items: center; padding-top: 80px; padding-bottom: 80px;
+    }
+    .badges { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 22px; }
+    .hero-sub { font-size: 1.1rem; max-width: 560px; margin: 18px 0 28px; }
+    .hero-cta { display: flex; gap: 14px; margin-bottom: 40px; flex-wrap: wrap; }
+    .hero-facts { display: flex; gap: 28px; flex-wrap: wrap; }
+    .hero-facts div { display: flex; flex-direction: column; }
+    .hero-facts b { font-size: 1.4rem; font-weight: 750; letter-spacing: -.02em; }
+    .hero-facts span { font-size: .82rem; color: var(--text-3); }
+    .hero-code { box-shadow: 0 24px 60px rgba(0,0,0,.35); font-size: .8rem; }
+    :root[data-theme='light'] .hero-code { box-shadow: 0 18px 44px rgba(120,60,40,.12); }
+    @media (max-width: 960px) { .hero-grid { grid-template-columns: 1fr; } }
+
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+    @media (max-width: 900px) { .grid3, .grid2 { grid-template-columns: 1fr; } }
+
+    .model-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; margin-bottom: 24px; }
+    @media (max-width: 900px) { .model-grid { grid-template-columns: 1fr; } }
+    .model-table th.rowh { text-transform: none; letter-spacing: 0; font-size: .88rem; color: var(--text-2); background: transparent; }
+    .model-table td { font-size: .9rem; white-space: nowrap; }
+    .model-steps { margin: 0; padding-left: 20px; display: grid; gap: 10px; }
+    .model-steps li { color: var(--text-2); }
+    .model-steps b { color: var(--text); }
+
+    .cmp td.y { color: var(--ok); font-weight: 600; }
+    .cmp td.n { color: var(--no); }
+    .cmp td:not(:first-child), .cmp th:not(:first-child) { text-align: center; white-space: nowrap; }
+    .cmp td:last-child, .cmp th:last-child { background: linear-gradient(180deg, rgba(255,90,78,.05), rgba(212,57,143,.05)); }
+    .migrate { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 22px; }
+    @media (max-width: 800px) { .migrate { grid-template-columns: 1fr; } }
+    .mig { color: inherit; }
+    .mig:hover { color: inherit; }
+
+    .deps-head { padding: 0 10px 0 4px; }
+    .dep-tabs { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+    .dep-tab {
+      appearance: none; background: transparent; border: 0; cursor: pointer;
+      color: var(--text-3); font: 600 .8rem var(--font-sans);
+      padding: 10px 12px; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap;
+    }
+    .dep-tab:hover { color: var(--text); }
+    .dep-tab.active { color: var(--text); border-image: var(--brand-grad) 1; border-bottom: 2px solid; }
+    .dep-panel { display: none; }
+    .dep-panel.active { display: block; }
+    .after-code { margin-top: 22px; font-size: .95rem; }
+
+    .how-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 26px; }
+    @media (max-width: 900px) { .how-grid { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 560px) { .how-grid { grid-template-columns: 1fr; } }
+    .how-step { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; display: flex; flex-direction: column; gap: 6px; }
+    .how-step b { font-family: var(--font-mono); font-size: .82rem; background: var(--brand-grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .how-step span { color: var(--text-2); font-size: .9rem; }
+
+    .credit { display: flex; align-items: center; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+    .credit-cta { display: flex; gap: 12px; }
+  </style>
+
+  <script>
+    document.querySelectorAll('[data-deptabs]').forEach((box) => {
+      box.querySelectorAll('.dep-tab[data-tab]').forEach((tab) => {
+        tab.addEventListener('click', () => {
+          box.querySelectorAll('.dep-tab').forEach((t) => t.classList.remove('active'));
+          box.querySelectorAll('.dep-panel').forEach((p) => p.classList.remove('active'));
+          tab.classList.add('active');
+          box.querySelector(`[data-panel="${tab.getAttribute('data-tab')}"]`)?.classList.add('active');
+        });
+      });
+    });
+    document.querySelectorAll('[data-copy]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const box = btn.closest('.codebox');
+        const pre = box?.querySelector('.dep-panel.active pre') ?? box?.querySelector('pre');
+        if (!pre) return;
+        navigator.clipboard.writeText(pre.textContent ?? '');
+        btn.textContent = 'Copied!';
+        setTimeout(() => (btn.textContent = 'Copy'), 1600);
+      });
+    });
+  </script>
+</Base>
